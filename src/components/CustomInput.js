@@ -6,7 +6,7 @@ const CustomInput = ({label, value, setValue, type="text"}) =>{
         <div>
             <label>{label}</label>
             <input
-                style={{width:"100%"}}
+                style={{width:"100%", marginBottom:"20px"}}
                 value={value}
                 type={type}
                 onChange={(e)=> setValue(e.target.value)}
