@@ -22,7 +22,7 @@ const LoginPage = () =>{
             toast.success('로그인을 성공하였습니다.');
             history.push("/")
         } catch (error) {
-            console.log(error);
+            console.error(error.message);
             toast.error(error.message);
         }
 
