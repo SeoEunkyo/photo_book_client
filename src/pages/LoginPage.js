@@ -18,7 +18,7 @@ const LoginPage = () =>{
         try {
             if(username.length < 3 || password.length <6) throw new Error("입력하신 정보가 올바르지 않습니다.");
             const result = await axios.patch('/user/login',{username,password});
-            setMe({name:result.data.name, sessionId : result.data.sessionId});
+            setMe({name:result.data.name, sessionId : result.data.sessionId, id : result.data.id});
             toast.success('로그인을 성공하였습니다.');
             history.push("/")
         } catch (error) {

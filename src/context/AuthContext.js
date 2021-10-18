@@ -19,12 +19,13 @@ export const AuthProvider = (prop) => {
                 setMe({
                     name : result.data.name,
                     sessionId : result.data.sessionId,
+                    id : result.data.id
                 })
 
             }).catch((err)=>{
                 console.log(err)
-                // delete axios.defaults.headers.common.sessionid;
-                // localStorage.removeItem("sessionId");
+                delete axios.defaults.headers.common.sessionid;
+                localStorage.removeItem("sessionId");
             })
         }
         else delete axios.defaults.headers.common.sessionid;

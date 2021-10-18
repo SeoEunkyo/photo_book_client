@@ -2,15 +2,19 @@ import React, { useContext, useReducer } from "react";
 import './ImageList.css';
 import {ImageContext}  from "../context/ImageContext"
 import { AuthContext } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 
 const ImageList = () =>{
     const {images, myImages, isPublic, setIsPublic} = useContext(ImageContext);
     const [me] = useContext(AuthContext);
-    const imglist = (isPublic? images : myImages).map((image)=>(  
-    <img key={image.key}
-    src={`http://localhost:5000/uploads/${image.key}`}/> ))
-
+    const imglist = (isPublic ? images : myImages).map((image) => (
+        <Link key={image.key} to={`/images/${image._id}`}>
+            <img
+                alt=""
+                src={`http://localhost:5000/uploads/${image.key}`} />
+        </Link>
+     ))
     return(
         <div>
             <h3 style={{display:"inline-block", marginRight:"10px"}}>Image List ({isPublic ? "공개":"개인"})</h3>
