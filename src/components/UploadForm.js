@@ -7,13 +7,14 @@ import { ImageContext } from "../context/ImageContext";
 
 
 const UploadForm = () => {
-    const [images, setImages] = useContext(ImageContext);
+    const {images, setImages, myImages, setMyImages} = useContext(ImageContext);
 
     const defaultFileName = '이미지를 입력해 주세요';
     const [file, setFile] = useState(null);
     const [fileName, setFileName] = useState(defaultFileName);
     const [percent, setPercent] = useState(0);
     const [imgSrc, setImgSrc] = useState(null);
+    const [isPublic, setIsPublic] = useState(false);
 
     const imageSelectHander = (event) => {
         const imagFile = event.target.files[0];
@@ -29,6 +30,7 @@ const UploadForm = () => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('image', file);
+        formData.append('public', isPublic);
         try {
             const res = await axios.post('/images', formData, {
                 headers: { "Content-type": "multipart/form-data" },
@@ -38,7 +40,8 @@ const UploadForm = () => {
             });
             toast.success('good');
             // console.log(res)
-            setImages([res.data, ...images]);
+            if(!isPublic) setMyImages([res.data, ...myImages]);
+            else setImages([res.data, ...images]);
             setTimeout(() => {
                 setPercent(0);
                 setFileName(defaultFileName);
@@ -66,6 +69,8 @@ const UploadForm = () => {
                 <input id="image" type="file"  accept="image/*"
                     onChange={imageSelectHander} />
             </div>
+            <input onChange={()=>setIsPublic(!isPublic)} type="checkbox" id="public-check"/>
+            <label htmlFor="public-check"> 비공개 </label>
             <button type="submit" style={{width:'100%', height : '40px', borderRadius:'3px'}}> 제공 </button>
         </form>
     )

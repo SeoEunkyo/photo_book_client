@@ -1,20 +1,24 @@
-import React, { useContext } from "react";
+import React, { useContext, useReducer } from "react";
 import './ImageList.css';
 import {ImageContext}  from "../context/ImageContext"
+import { AuthContext } from "../context/AuthContext";
 
 
 const ImageList = () =>{
-    const [images] = useContext(ImageContext);
-
-    const imglist = images.map((image)=>(  
+    const {images, myImages, isPublic, setIsPublic} = useContext(ImageContext);
+    const [me] = useContext(AuthContext);
+    const imglist = (isPublic? images : myImages).map((image)=>(  
     <img key={image.key}
-    style={{width:'100%'}} 
     src={`http://localhost:5000/uploads/${image.key}`}/> ))
 
     return(
         <div>
-            <h3>ImageList</h3>
-            {imglist}
+            <h3 style={{display:"inline-block", marginRight:"10px"}}>Image List ({isPublic ? "공개":"개인"})</h3>
+            {me && <button onClick={() => setIsPublic(!isPublic)}> {!isPublic ? "공개":"개인"} 사진 </button> }
+            <div className="image-list-container">
+                {imglist}
+            </div>
+            
         </div>
     )
 }

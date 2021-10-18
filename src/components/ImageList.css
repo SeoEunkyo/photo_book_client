@@ -1,0 +1,18 @@
+.image-list-container{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-around;
+}
+
+.image-list-container img{
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.image-list-container img:hover{
+    box-shadow: 4px 4px 4px gray ;
+    opacity: 0.7;
+    cursor: pointer;
+}
