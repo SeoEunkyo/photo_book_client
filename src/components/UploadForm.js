@@ -9,27 +9,36 @@ import { ImageContext } from "../context/ImageContext";
 const UploadForm = () => {
     const {images, setImages, myImages, setMyImages} = useContext(ImageContext);
 
-    const defaultFileName = '이미지를 입력해 주세요';
-    const [file, setFile] = useState(null);
-    const [fileName, setFileName] = useState(defaultFileName);
+    const [files, setFiles] = useState(null);
+    const [previews , setPreviews] = useState([]);
     const [percent, setPercent] = useState(0);
-    const [imgSrc, setImgSrc] = useState(null);
     const [isPublic, setIsPublic] = useState(false);
 
-    const imageSelectHander = (event) => {
-        const imagFile = event.target.files[0];
-        setFile(imagFile);
-        setFileName(imagFile.name);
+    const imageSelectHander = async(event) => {
+        const imageFiles = event.target.files;
+        setFiles(imageFiles);
 
-        const filereader = new FileReader();
-        filereader.readAsDataURL(imagFile);
-        filereader.onload = e => setImgSrc(e.target.result);
+        const imagePreviews = await Promise.all( [...imageFiles].map(async(imagFile)=>{
+            return  new Promise((resolve, reject) =>{
+                    try {
+                        const filereader = new FileReader();
+                        filereader.readAsDataURL(imagFile);
+                        filereader.onload = e => resolve({imgSrc : e.target.result, fileName:imagFile.name});
+                    } catch (error) {
+                        reject(error)
+                    }
+                }
+            )
+        }))
+        console.log('imagePreviews ',imagePreviews)
+        setPreviews(imagePreviews);
     }
 
     const onSumit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
-        formData.append('image', file);
+        for(let file of files)  formData.append('image', file);
+
         formData.append('public', isPublic);
         try {
             const res = await axios.post('/images', formData, {
@@ -40,19 +49,19 @@ const UploadForm = () => {
             });
             toast.success('good');
             // console.log(res)
-            if(!isPublic) setMyImages([res.data, ...myImages]);
-            else setImages([res.data, ...images]);
+            if(!isPublic) setMyImages([...res.data, ...myImages]);
+            else setImages([...res.data, ...images]);
             setTimeout(() => {
                 setPercent(0);
-                setFileName(defaultFileName);
-                setImgSrc(null);
+                // setFileName(defaultFileName);
+                setPreviews([]);
             }, 3000);
 
         } catch (error) {
             toast.error('fail')
             setPercent(0);
-            setFileName(defaultFileName);
-            setImgSrc(null);
+            // setFileName(defaultFileName);
+            setPreviews([]);
             console.log(`Erro : ${error}`);
             
         }
@@ -60,13 +69,25 @@ const UploadForm = () => {
 
 
 
+    const previewImages = previews.map((preview,index) =>(
+        <img 
+            key={index}
+            style={{width:200 , height:200 , objectFit:"cover"}}
+            src={preview.imgSrc}  
+            className={`image_preview ${preview.imgSrc && 'image_preview_show'} `}/>
+    ))
+
+    const fileName = previews.length === 0 ? '이미지를 입력해 주세요' : previews.reduce((previous, currunt) => previous+`${currunt.fileName}, `,"" )
+
+
     return (
         <form onSubmit={onSumit}>
-            <img src={imgSrc}  className={`image_preview ${imgSrc && 'image_preview_show'} `}/>
+            <div style={{display:"flex", flexWrap:"wrap"}}> {previewImages} </div>
+            
             <ProgressBar percent={percent} />
             <div className={'file-dropper'}>
                 {fileName}
-                <input id="image" type="file"  accept="image/*"
+                <input id="image" type="file" multiple  accept="image/*"
                     onChange={imageSelectHander} />
             </div>
             <input onChange={()=>setIsPublic(!isPublic)} type="checkbox" id="public-check"/>
