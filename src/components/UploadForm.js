@@ -11,8 +11,9 @@ const UploadForm = () => {
 
     const [files, setFiles] = useState(null);
     const [previews , setPreviews] = useState([]);
-    const [percent, setPercent] = useState(0);
+    const [percent, setPercent] = useState([]);
     const [isPublic, setIsPublic] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const imageSelectHander = async(event) => {
         const imageFiles = event.target.files;
@@ -34,7 +35,63 @@ const UploadForm = () => {
         setPreviews(imagePreviews);
     }
 
-    const onSumit = async (e) => {
+    const onSubmitV2 = async (e) => {
+
+        try {
+            setIsLoading(true);
+            const presignedData = await axios.post("/images/presigned",{
+                contentType: [...files].map(file=> file.type)
+            });
+
+            const result = await Promise.all([...files].map((file,index)=>{
+                const {presigned}= presignedData.data[index];
+                const formData = new FormData();
+                for(const key in presigned.fields){
+                    formData.append(key, presigned.fields[key]);
+                }
+                formData.append("content-Type",file.type);
+                formData.append("file",file);
+                return axios.post(presigned.url, formData,{
+                    onUploadProgress : (e) =>{
+                        setPercent(prevData=>{
+                            const newData = [...prevData];
+                            newData[index] = Math.round(100*e.loaded / e.total);
+                            return newData;
+                        })
+                        
+                    }
+                })
+
+            }))
+
+            const res = await axios.post("/images", {images:[...files].map((file,index)=>
+                ({imagekey : presignedData.data[indxe].imagekey, 
+                    originalname:file.name}))
+            ,public:isPublic})
+
+            if(!isPublic) setMyImages([...res.data, ...myImages]);
+            else setImages([...res.data, ...images]);
+
+            toast.success('good');
+            setTimeout(() => {
+                setPercent([]);
+                // setFileName(defaultFileName);
+                setPreviews([]);
+            }, 3000);
+
+        } catch (error) {
+            toast.error('fail')
+            setPercent([]);
+            // setFileName(defaultFileName);
+            setPreviews([]);
+            console.log(`Erro : ${error}`);
+        } finally{
+            setIsLoading(false);
+        }
+
+    }
+
+    const onSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
         for(let file of files)  formData.append('image', file);
@@ -47,10 +104,11 @@ const UploadForm = () => {
                     setPercent( Math.round(100*e.loaded / e.total))
                 }
             });
-            toast.success('good');
+            
             // console.log(res)
             if(!isPublic) setMyImages([...res.data, ...myImages]);
             else setImages([...res.data, ...images]);
+            toast.success('good');
             setTimeout(() => {
                 setPercent(0);
                 // setFileName(defaultFileName);
@@ -69,22 +127,24 @@ const UploadForm = () => {
 
 
 
-    const previewImages = previews.map((preview,index) =>(
-        <img 
-            key={index}
-            style={{width:200 , height:200 , objectFit:"cover"}}
-            src={preview.imgSrc}  
-            className={`image_preview ${preview.imgSrc && 'image_preview_show'} `}/>
+    const previewImages = previews.map((preview, index) => (
+        <div key={index}>
+            <img
+                style={{ width: 200, height: 200, objectFit: "cover" }}
+                src={preview.imgSrc}
+                className={`image_preview ${preview.imgSrc && 'image_preview_show'} `} />
+            <ProgressBar percent={percent[index]} />
+        </div>
     ))
 
     const fileName = previews.length === 0 ? '이미지를 입력해 주세요' : previews.reduce((previous, currunt) => previous+`${currunt.fileName}, `,"" )
 
 
     return (
-        <form onSubmit={onSumit}>
-            <div style={{display:"flex", flexWrap:"wrap"}}> {previewImages} </div>
+        <form onSubmit={onSubmitV2}>
+            <div style={{display:"flex", justifyContent:"space-around", flexWrap:"wrap"}}> {previewImages} </div>
             
-            <ProgressBar percent={percent} />
+            
             <div className={'file-dropper'}>
                 {fileName}
                 <input id="image" type="file" multiple  accept="image/*"
@@ -92,7 +152,7 @@ const UploadForm = () => {
             </div>
             <input onChange={()=>setIsPublic(!isPublic)} type="checkbox" id="public-check"/>
             <label htmlFor="public-check"> 비공개 </label>
-            <button type="submit" style={{width:'100%', height : '40px', borderRadius:'3px'}}> 제공 </button>
+            <button type="submit" diabled={isLoading} style={{width:'100%', height : '40px', borderRadius:'3px'}}> 제공 </button>
         </form>
     )
 

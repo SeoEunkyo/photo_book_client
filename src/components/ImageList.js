@@ -3,16 +3,15 @@ import './ImageList.css';
 import {ImageContext}  from "../context/ImageContext"
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-
+import Image from "./Image"
 
 const ImageList = () =>{
     const {images, myImages, isPublic, setIsPublic} = useContext(ImageContext);
     const [me] = useContext(AuthContext);
     const imglist = (isPublic ? images : myImages).map((image) => (
         <Link key={image.key} to={`/images/${image._id}`}>
-            <img
-                alt=""
-                src={`http://localhost:5000/uploads/${image.key}`} />
+            
+            <Image imageUrl={`https://image-upload-tutorial2.s3.ap-northeast-2.amazonaws.com/w140/${image.key}`} />
         </Link>
      ))
     return(
