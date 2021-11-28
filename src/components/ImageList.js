@@ -11,7 +11,7 @@ const ImageList = () =>{
     const imglist = (isPublic ? images : myImages).map((image) => (
         <Link key={image.key} to={`/images/${image._id}`}>
             
-            <Image imageUrl={`https://image-upload-tutorial2.s3.ap-northeast-2.amazonaws.com/w140/${image.key}`} />
+            <Image imageUrl={`https://drxfpur890wkn.cloudfront.net/w140/${image.key}`} />
         </Link>
      ))
     return(

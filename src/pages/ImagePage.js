@@ -53,7 +53,7 @@ const ImagePage = () => {
     return (
         <div>
             <h3>Image Page </h3>
-            <img style={{ maxWidth: "100%" }} alt={imageId} src={`http://localhost:5000/uploads/${image.key}`} />
+            <img style={{ maxWidth: "100%" }} alt={imageId} src={`https://drxfpur890wkn.cloudfront.net/w600/${image.key}`} />
             <span>좋아요 {image.like.length}</span>
             {me && image.user._id === me.id && <button
                 style={{ float: "right", marginLeft: 20 }}
